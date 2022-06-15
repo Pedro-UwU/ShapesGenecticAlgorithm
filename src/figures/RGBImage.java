@@ -59,11 +59,9 @@ public class RGBImage {
         if (x < 0 || x > width || y < 0 || y > height) {
             throw new RuntimeException("ERROR: setPixel Invalid Coordinates");
         }
-        int index = getIndex(x, y);
+
         int[] colors = getColors(color);
-        pixels[index + R] = colors[R];
-        pixels[index + G] = colors[G];
-        pixels[index + B] = colors[B];
+        fillPixel(x, y, colors);
     }
 
     private int getColorInt(int r, int g, int b) {
@@ -80,5 +78,84 @@ public class RGBImage {
         return (y * width + x) * 3;
     }
 
+    public int[] getPixelRGB(int x, int y) {
+        int index = getIndex(x, y);
+        int[] colors = new int[3];
+        colors[R] = pixels[index + R];
+        colors[G] = pixels[index + G];
+        colors[B] = pixels[index + B];
+        return colors;
+    }
 
+    public double getSquaredDistance(RGBImage other) {
+        if (other.width != width || other.height != height) {
+            throw new RuntimeException("ERROR Trying to calculate distance of images with different sizes");
+        }
+
+        double total_diff = 0;
+
+         for (int x = 0; x < width; x++) {
+             for (int y = 0; y < height; y++) {
+                 int index = getIndex(x, y);
+                 int[] my_colors = {pixels[index + R], pixels[index + G], pixels[index + B]};
+                 int[] other_colors = other.getPixelRGB(x, y);
+                 double diff = 0;
+                 for (int i = 0; i < 3; i++) {
+                    diff += Math.abs((my_colors[i] - other_colors[i])/255.0);
+                 }
+                 total_diff += (diff/3.0);
+             }
+         }
+         return total_diff;
+    }
+
+    public void drawSquare(int x, int y, int w, int h, int color) {
+        if (x < 0 || x >= width || y < 0 || y >= height || w < 0 || h < 0) {
+            throw new RuntimeException("ERROR: drawSquare Invalid Coordinates");
+        }
+
+        int[] colors = getColors(color);
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                fillPixel(x+i, y+j, colors);
+            }
+        }
+    }
+
+    public void drawSquare(int x, int y, int w, int h, int r, int g, int b) {
+        if (x < 0 || x >= width || y < 0 || y >= height || w < 0 || h < 0) {
+            throw new RuntimeException("ERROR: drawSquare Invalid Coordinates");
+        }
+
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                if (x+i >= width || y+j >= height) continue;
+                fillPixel(x+i, y+j, new int[]{r,g,b});
+            }
+        }
+    }
+
+    private void fillPixel(int x, int y, int[] colors) {
+        int index = getIndex(x, y);
+        pixels[index + R] = colors[R];
+        pixels[index + G] = colors[G];
+        pixels[index + B] = colors[B];
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public RGBImage copy() {
+        RGBImage img = new RGBImage(width, height);
+        for (int i = 0; i < pixels.length; i++) {
+            img.pixels[i] = pixels[i];
+        }
+        return img;
+    }
 }
+
